@@ -1,0 +1,6 @@
+included:
+  - TraccarClient
+
+# Match Swift's multiline collection style without disabling the default rules.
+trailing_comma:
+  mandatory_comma: true

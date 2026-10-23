@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: SwiftLint
+    runs-on: macos-15
+    timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint Swift sources
+        run: scripts/lint.sh "$RUNNER_TEMP/ci-tools"
+
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: primary
+            runner: xcode-27
+            developer_dir: /Applications/Xcode_27.1.app/Contents/Developer
+            xcode_version: '27.1'
+            xcode_build: 27A9275
+            sdk_version: '27.0'
+            os_major: '27'
+          - name: macOS 15
+            runner: macos-15
+            developer_dir: /Applications/Xcode_26.3.app/Contents/Developer
+            xcode_version: '26.3'
+            xcode_build: 17C529
+            sdk_version: '26.2'
+            os_major: '15'
+    env:
+      DEVELOPER_DIR: ${{ matrix.developer_dir }}
+      EXPECTED_XCODE_VERSION: ${{ matrix.xcode_version }}
+      EXPECTED_XCODE_BUILD: ${{ matrix.xcode_build }}
+      EXPECTED_SDK_VERSION: ${{ matrix.sdk_version }}
+      EXPECTED_OS_MAJOR: ${{ matrix.os_major }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify runner and toolchain
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-diagnostics"
+          scripts/verify-toolchain.sh "$EXPECTED_XCODE_VERSION" "$EXPECTED_XCODE_BUILD" \
+            "$EXPECTED_SDK_VERSION" "$EXPECTED_OS_MAJOR" \
+            2>&1 | tee "$RUNNER_TEMP/ci-diagnostics/toolchain.log"
+      - name: Build Debug
+        run: |
+          scripts/build.sh "$RUNNER_TEMP/traccar-ci" Debug \
+            2>&1 | tee "$RUNNER_TEMP/ci-diagnostics/build-debug.log"
+      - name: Build Release
+        run: |
+          scripts/build.sh "$RUNNER_TEMP/traccar-ci" Release \
+            2>&1 | tee "$RUNNER_TEMP/ci-diagnostics/build-release.log"
+      - name: Verify application binaries
+        run: scripts/verify-build.sh "$RUNNER_TEMP/traccar-ci"
+      - name: Sanitize failure diagnostics
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ['RUNNER_TEMP'])
+          output = root / 'ci-diagnostics-sanitized'
+          output.mkdir(exist_ok=True)
+          replacements = [(os.environ[key], f'<{key}>')
+                          for key in ('GITHUB_WORKSPACE', 'RUNNER_TEMP', 'HOME')]
+          for log in (root / 'ci-diagnostics').glob('*.log'):
+              content = log.read_text(errors='replace')
+              for value, replacement in replacements:
+                  content = content.replace(value, replacement)
+              (output / log.name).write_text(content)
+          PY
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-diagnostics-${{ matrix.runner }}
+          path: ${{ runner.temp }}/ci-diagnostics-sanitized/*.log
+          if-no-files-found: warn
+          retention-days: 7
