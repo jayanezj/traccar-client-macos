@@ -1,4 +1,4 @@
-import SwiftUI    
+import SwiftUI
 
 struct SettingsView: View {
     var body: some View {
@@ -32,5 +32,3 @@ struct SettingsView: View {
         .frame(width: 560, height: 320)
     }
 }
-
-#error("Issue #2: deliberate remote CI compilation failure")
