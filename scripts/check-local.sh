@@ -28,9 +28,11 @@ esac
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$repo_root"
+source "$repo_root/scripts/signing-options.sh"
 trap 'status=$?; echo "Local checks failed (exit $status)." >&2; exit "$status"' ERR
 
 echo "Checking toolchain ($profile)..."
+echo "Signing mode: $signing_mode"
 scripts/verify-toolchain.sh "${toolchain[@]}"
 
 echo "Checking shell syntax and Git whitespace..."
@@ -48,8 +50,11 @@ for configuration in Debug Release; do
     scripts/build.sh "$validation_root/build" "$configuration"
 done
 
+echo "Running configuration tests..."
+scripts/test.sh "$validation_root/build"
+
 echo "Checking application binaries and signatures..."
 scripts/verify-build.sh "$validation_root/build"
 
-echo "Local checks passed ($profile): lint, Debug, Release, arm64, macOS 15.0 minimum and signatures."
+echo "Local checks passed ($profile, $signing_mode): lint, Debug, Release, configuration tests, arm64, macOS 15.0 minimum and signatures."
 echo "Hosted workflow execution and manual application checks remain separate."

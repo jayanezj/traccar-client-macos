@@ -20,13 +20,13 @@ struct TrackingMenu: View {
         Divider()
 
         Button("Settings…") {
-            NSApplication.shared.activate(ignoringOtherApps: true)
+            NSApplication.shared.activate()
             openSettings()
         }
         .keyboardShortcut(",")
 
         Button("About Traccar Client for macOS") {
-            NSApplication.shared.activate(ignoringOtherApps: true)
+            NSApplication.shared.activate()
             NSApplication.shared.orderFrontStandardAboutPanel(options: [
                 .applicationName: "Traccar Client for macOS",
                 .credits: NSAttributedString(

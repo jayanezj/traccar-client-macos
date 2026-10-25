@@ -12,6 +12,7 @@ case "$configuration" in
     *) echo "Configuration must be Debug or Release." >&2; exit 2 ;;
 esac
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+source "$repo_root/scripts/signing-options.sh"
 mkdir -p "$build_root"
 
 exec xcodebuild \
@@ -22,4 +23,5 @@ exec xcodebuild \
     -derivedDataPath "$build_root/DerivedData" \
     "CLANG_MODULE_CACHE_PATH=$build_root/ModuleCache" \
     "SWIFT_MODULE_CACHE_PATH=$build_root/ModuleCache" \
+    "${signing_options[@]}" \
     build
