@@ -2,7 +2,7 @@
 
 An independent, unofficial native Traccar client for Apple Silicon Macs.
 
-**Development status:** local configuration and identity persistence for [issue #3](https://github.com/jayanezj/traccar-client-macos/issues/3). This build stays paused. Location access, tracking and position/SOS delivery are not implemented; their menu actions are disabled.
+**Development status:** native local location capture for [issue #4](https://github.com/jayanezj/traccar-client-macos/issues/4), alongside persistent configuration. The app starts paused; continuous capture and a separate single capture are available only on explicit actions. Position/SOS delivery, queueing and position-selection rules are not implemented; sending actions remain disabled.
 
 ## Requirements
 
@@ -30,13 +30,13 @@ The app currently uses no provisioning profile or restricted entitlements. Apple
 
 ## Initial shell smoke check
 
-1. Launch the built app. It should show a menu-bar icon and paused status. The Dock icon appears while Settings or About is open and disappears after the last window closes.
-2. Confirm Start tracking, Send location now and Send SOS are disabled.
+1. Launch the built app. It should show a menu-bar icon and paused status. The Dock icon appears while Settings, About or Location capture is open and disappears after the last window closes.
+2. Confirm capture starts paused, opening Settings or Location status does not ask for location permission, and Send location now / Send SOS remain disabled.
 3. Open Settings and switch to another app. Confirm Traccar Client is available in Command-Tab and the Dock. Minimize Settings and recover it from the Dock. Open About too: closing one window should keep the Dock icon; closing the last should hide it while the process and menu-bar icon remain running. Reopen Settings from the menu.
 4. Open About and check the version, unofficial-client statement and Apache-2.0 license information.
 5. Quit from the menu. The process should terminate.
 
-No location permission request or server connection is part of this shell. Real-Mac UI checks remain distinct from automated compilation.
+Launching the app, opening Settings or inspecting Location status never requests location permission or contacts a receiver. Start and Capture once are explicit location actions. Real-Mac permission and UI checks remain distinct from compilation.
 
 ## Local configuration
 
@@ -57,7 +57,30 @@ Use a synthetic identifier and a test receiver URL; no receiver is contacted in 
 3. Quit and reopen the app. Open Settings and authorize only if requested. Confirm URL, identifier and tracking preferences remain saved and status remains paused.
 4. Save an identifier such as `000123-test`, then quit and reopen. Confirm it is preserved exactly.
 5. Try an invalid URL such as `ftp://example.com`. Saving should report an error and preserve the last saved configuration.
-6. Confirm no location permission request or network request occurs. Check real Keychain access and Settings reopening separately from the isolated automated suite.
+6. Confirm loading/saving settings does not request location or contact the receiver. Check real Keychain access and Settings reopening separately from the isolated automated suite.
+
+## Local location capture
+
+Choose **Start location capture**, **Capture location once** or **Location status…** from the menu bar. If access is not yet available, the status window explains the operation; choose **Start** or **Capture once** there to request permission. Denied or restricted access is reported without repeatedly prompting; enable access in System Settings if appropriate and explicitly refresh status. The app starts paused and never restores capture on relaunch.
+
+Continuous capture belongs to the app, not to a Settings/status window. Closing those windows or using another app does not request a pause. **Pause location capture** stops automatic acquisition; a single capture requested separately can still complete. Cancelling a single capture does not pause continuous capture. Quit stops both. A saved destination/identifier change cancels both operations before persistence. No location is sent to the configured receiver, including the demo; send and SOS actions remain disabled.
+
+The accuracy setting is read from saved non-sensitive preferences at each explicit start, without opening Keychain or Settings. The default is medium (`kCLLocationAccuracyHundredMeters`); low requests one kilometre and high requests best available accuracy, matching the official SDK categories. These are requests, not guarantees or rejection thresholds. Changing accuracy applies on the next start. Interval/distance selection, buffering and stationary detection remain future work.
+
+Location status and the menu show the actual fix timestamp and reported horizontal accuracy. Old or imprecise fixes are not discarded by extra age/maximum-accuracy limits. A single request may return a cached fix; no result is labelled as guaranteed fresh. If obtaining a fix fails and a valid last-known location is available, the window explicitly identifies that fallback and retains its original date/accuracy. Without a location, it reports failure. Invalid coordinates or negative/non-finite horizontal accuracy are invalid fixes; unsupported optional altitude/speed/course values are omitted. The app retains only the latest fix in memory and does not display coordinates, log them or keep a local position history.
+
+This native macOS app uses `NSLocationUsageDescription`. It currently has no App Sandbox or Hardened Runtime capabilities and adds no restricted entitlements, provisioning profiles or iOS background modes. Managers are created on the main run loop; a separate manager handles a single request so it cannot cancel the continuous service. Location availability is determined by macOS; a portable Mac is not assumed to have GPS or to deliver a particular accuracy/cadence. No wake lock, simulated sleep-time positions or automatic stationary detection is added here.
+
+### Real-Mac location check
+
+These checks remain manual; they are not established by the deterministic test suite:
+
+1. Launch the Apple Development-signed app with the established bundle identity. Confirm no capture/prompt on launch, Settings or Location status. Start from the status window and test the system's denial path first; refresh/reopen should not produce repeated prompts.
+2. If permitted by the system, enable location access in System Settings, then start explicitly. Verify condition, original timestamp and reported accuracy. Keep coordinates, account/receiver identifiers and private screenshots out of reports.
+3. Close Settings and Location capture, use another app, and inspect the menu later. Check that continuous capture stays requested and record whether macOS supplies updates. Pause and confirm no further automatic fix is accepted.
+4. While paused, request a single capture. Verify it stays paused after receiving a fix, shows fallback/date honestly on failure, and can be cancelled. Also try single capture during continuous acquisition; pausing continuous capture must not cancel the separate request.
+5. Quit, rebuild with the same certificate and bundle identifier, then reopen. Record location authorization and real-Keychain continuity separately; do not reset privacy settings or renew/revoke certificates for this check. Capture must start paused.
+6. Record early window-close, lock/unlock and sleep/wake behaviour: actual app/macOS/hardware, whether capture was requested, last-fix timestamps and availability, without coordinates. Do not infer captures during sleep or validated behaviour on macOS 15 from deployment settings. Full lifecycle/queue handling belongs to #11.
 
 ## Continuous integration
 
@@ -66,14 +89,14 @@ The workflow in `.github/workflows/ci.yml` runs on pull requests, pushes to `mai
 | Check | Runner | Toolchain | Work |
 | --- | --- | --- | --- |
 | SwiftLint | `macos-15` arm64 | Xcode 26.3; SwiftLint 0.65.1 | Strict lint, including warnings |
-| Build (primary) | `xcode-27` arm64 | Xcode 27.1, build 27A9275; macOS SDK 27.0 | Debug, Release and configuration tests |
-| Build (macOS 15) | `macos-15` arm64 | Xcode 26.3, build 17C529; macOS SDK 26.2 | Debug, Release and configuration tests |
+| Build (primary) | `xcode-27` arm64 | Xcode 27.1, build 27A9275; macOS SDK 27.0 | Debug, Release and application tests |
+| Build (macOS 15) | `macos-15` arm64 | Xcode 26.3, build 17C529; macOS SDK 26.2 | Debug, Release and application tests |
 
 Both build jobs explicitly set `TRACCAR_SIGNING_MODE=adhoc`: CI builds and tests need no Apple account or private signing key, including for fork PRs. These builds are validation artifacts, not distribution packages. Local builds default to `development` and use Apple Development. Signature verification checks the selected mode explicitly.
 
 Both build jobs verify the host architecture, OS major version, selected Xcode/build and SDK before compiling. They also verify arm64 binaries, deployment target 15.0 and application signatures. A missing or unexpected toolchain fails the check. The `xcode-27` runner image is a public preview, accepted for early CI; Xcode 27.1 build 27A9275 itself is an Apple final release. Review the runner's status before automating releases.
 
-Both build jobs execute the hostless Swift Testing target. It compiles the same configuration sources as the application and tests validation, stable identity generation, save/reload, storage errors, transient status expiry/cancellation and the guard for future pending-position checks. Window-focus tests cover deferred activation, closed/minimized windows, activation failure and superseded requests. Tests use isolated UserDefaults suites, synthetic Keychain operations and fake windows/activation; they do not open the app, use the login Keychain or contact a server. A narrowly scoped legacy Keychain API suppresses interaction during the initial file-based read and immediately restores its previous setting. All application Keychain operations run synchronously on the main actor. The modern LAContext interaction flags do not suppress the legacy file-based dialogs. Real Keychain access, UI relaunch, location permissions, sleep behaviour and Gatekeeper require separate checks. Subsequent features extend this suite in the same PR as their implementation.
+Both build jobs execute the hostless Swift Testing target. It compiles the same configuration/location sources as the application and tests validation, stable identity generation, save/reload, storage errors, transient status expiry/cancellation and the guard for future pending-position checks. Location tests cover explicit authorization, denied/disabled states, pause/one-shot independence, stale callbacks, real timestamps/accuracy, fallback and saved-accuracy reads without Keychain. They construct only synthetic CLLocation values and never instantiate the live location provider or request runner location. Window-focus tests cover deferred activation, closed/minimized windows, activation failure and superseded requests. Tests use isolated UserDefaults suites, synthetic Keychain operations and fake windows/activation; they do not open the app, use the login Keychain or contact a server. A narrowly scoped legacy Keychain API suppresses interaction during the initial file-based read and immediately restores its previous setting. All application Keychain operations run synchronously on the main actor. The modern LAContext interaction flags do not suppress the legacy file-based dialogs. Real Keychain access, UI relaunch, location permissions, sleep behaviour and Gatekeeper require separate checks. Subsequent features extend this suite in the same PR as their implementation.
 
 ### Local checks before pushing
 
@@ -98,7 +121,7 @@ TRACCAR_SIGNING_MODE=adhoc scripts/check-local.sh /path/to/external/local-ci-adh
 
 `TRACCAR_SIGNING_MODE` also applies to the individual build, test and verification scripts. Accepted values are `development` and `adhoc`; there is no automatic fallback. The ad hoc mode is for CI validation, not for producing the selected distribution build.
 
-The command checks the toolchain, shell syntax and whitespace in staged/unstaged tracked changes, runs strict SwiftLint, builds Debug and Release, runs configuration tests, then verifies both binaries' architecture, deployment target and the selected signing mode. It stops at the first failure and returns a nonzero exit code. Tools are cached under `tools/` and incremental build products under `build/` in the supplied directory. The toolchain, lint, build, test and binary verification scripts are shared with CI. Test result bundles are saved under `build/TestResults/`, with a unique directory per run.
+The command checks the toolchain, shell syntax and whitespace in staged/unstaged tracked changes, runs strict SwiftLint, builds Debug and Release, runs application tests, then verifies both binaries' architecture, deployment target and the selected signing mode. It stops at the first failure and returns a nonzero exit code. Tools are cached under `tools/` and incremental build products under `build/` in the supplied directory. The toolchain, lint, build, test and binary verification scripts are shared with CI. Test result bundles are saved under `build/TestResults/`, with a unique directory per run.
 
 On a separate macOS 15 arm64 environment with Xcode 26.3 build 17C529 and SDK 26.2, select the minimum-system profile explicitly:
 
@@ -118,7 +141,7 @@ scripts/lint.sh /path/to/external/tools-directory
 
 The script downloads the official portable SwiftLint release, verifies its pinned SHA-256 and checks the executable version. `.swiftlint.yml` applies the default rules to application and test sources, with mandatory trailing commas in multiline collections. No baseline or automatic fixes are applied. SwiftLint is a development tool, not an application package dependency.
 
-Run configuration tests alone with Xcode or the shared script:
+Run application tests alone with Xcode or the shared script:
 
 ```sh
 scripts/test.sh /path/to/external/build-directory

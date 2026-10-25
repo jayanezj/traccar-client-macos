@@ -31,12 +31,12 @@ final class ConfigurationModel {
         self.beforeConnectionChange = beforeConnectionChange
     }
 
-    static func live() -> ConfigurationModel {
-        ConfigurationModel(storage: PreferencesConfigurationStorage(
-            preferences: .standard, connectionStorage: KeychainConnectionStorage(
-                service: "\(Bundle.main.bundleIdentifier ?? "com.codigojose.traccar-client-macos").configuration"
-            )
-        ))
+    static func live(
+        beforeConnectionChange: @escaping (ReceiverConnection, ReceiverConnection) throws -> Void = { _, _ in }
+    ) -> ConfigurationModel {
+        ConfigurationModel(
+            storage: PreferencesConfigurationStorage.live(), beforeConnectionChange: beforeConnectionChange
+        )
     }
 
     func loadIfNeeded() {
@@ -83,7 +83,7 @@ final class ConfigurationModel {
             self.saved = candidate
             draft = candidate
             errorMessage = nil
-            showStatus("Configuration saved locally. Tracking remains paused.")
+            showStatus("Configuration saved locally. Saving does not start capture or send positions.")
             return true
         } catch {
             errorMessage = message(for: error)

@@ -15,6 +15,7 @@ for configuration in Debug Release; do
     echo "Verifying $configuration..."
     test "$(lipo -archs "$executable")" = arm64
     test "$(xcrun vtool -show-build "$executable" | awk '/minos/ {print $2}')" = 15.0
+    test -n "$(/usr/libexec/PlistBuddy -c 'Print :NSLocationUsageDescription' "$app/Contents/Info.plist")"
     codesign --verify --strict "$app"
     metadata="$(codesign --display --verbose=4 "$app" 2>&1)"
     case "$signing_mode" in

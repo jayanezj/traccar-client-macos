@@ -11,7 +11,7 @@ source "$repo_root/scripts/signing-options.sh"
 mkdir -p "$build_root/TestResults"
 result_root="$(mktemp -d "$build_root/TestResults/run.XXXXXX")"
 
-echo "Test results: $result_root/Configuration.xcresult"
+echo "Test results: $result_root/Application.xcresult"
 exec xcodebuild \
     -project "$repo_root/TraccarClient.xcodeproj" \
     -scheme TraccarClient \
@@ -19,7 +19,7 @@ exec xcodebuild \
     -destination 'platform=macOS,arch=arm64' \
     -parallel-testing-enabled NO \
     -derivedDataPath "$build_root/DerivedData" \
-    -resultBundlePath "$result_root/Configuration.xcresult" \
+    -resultBundlePath "$result_root/Application.xcresult" \
     "CLANG_MODULE_CACHE_PATH=$build_root/ModuleCache" \
     "SWIFT_MODULE_CACHE_PATH=$build_root/ModuleCache" \
     "${signing_options[@]}" \
