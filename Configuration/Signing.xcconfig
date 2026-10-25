@@ -1,0 +1,9 @@
+// Local apps use an Apple-issued development identity. No provisioning profile is needed
+// while the app has no restricted entitlements. CI explicitly overrides this with ad hoc signing.
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Development
+CODE_SIGNING_ALLOWED = YES
+CODE_SIGNING_REQUIRED = YES
+
+// Set DEVELOPMENT_TEAM locally; optionally select a certificate if several are available.
+#include? "Signing.local.xcconfig"

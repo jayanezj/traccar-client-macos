@@ -35,6 +35,7 @@ xcuserdata/
 *~
 
 # Local secrets and signing material (keep example configuration)
+/Configuration/Signing.local.xcconfig
 .env
 .env.*
 !.env.example
