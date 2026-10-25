@@ -50,11 +50,11 @@ for configuration in Debug Release; do
     scripts/build.sh "$validation_root/build" "$configuration"
 done
 
-echo "Running configuration tests..."
+echo "Running application tests..."
 scripts/test.sh "$validation_root/build"
 
 echo "Checking application binaries and signatures..."
 scripts/verify-build.sh "$validation_root/build"
 
-echo "Local checks passed ($profile, $signing_mode): lint, Debug, Release, configuration tests, arm64, macOS 15.0 minimum and signatures."
+echo "Local checks passed ($profile, $signing_mode): lint, Debug, Release, application tests, arm64, macOS 15.0 minimum and signatures."
 echo "Hosted workflow execution and manual application checks remain separate."

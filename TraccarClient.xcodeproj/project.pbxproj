@@ -4,6 +4,21 @@
 	classes = {};
 	objectVersion = 77;
 	objects = {
+		B00000000000000000000040 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location/LocationTypes.swift; sourceTree = "<group>"; };
+		A00000000000000000000040 = {isa = PBXBuildFile; fileRef = B00000000000000000000040; };
+		A00000000000000000000050 = {isa = PBXBuildFile; fileRef = B00000000000000000000040; };
+		B00000000000000000000041 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location/LocationModel.swift; sourceTree = "<group>"; };
+		A00000000000000000000041 = {isa = PBXBuildFile; fileRef = B00000000000000000000041; };
+		A00000000000000000000051 = {isa = PBXBuildFile; fileRef = B00000000000000000000041; };
+		B00000000000000000000042 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location/CoreLocationProvider.swift; sourceTree = "<group>"; };
+		A00000000000000000000042 = {isa = PBXBuildFile; fileRef = B00000000000000000000042; };
+		A00000000000000000000052 = {isa = PBXBuildFile; fileRef = B00000000000000000000042; };
+		B00000000000000000000043 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interface/LocationStatusView.swift; sourceTree = "<group>"; };
+		A00000000000000000000043 = {isa = PBXBuildFile; fileRef = B00000000000000000000043; };
+		B00000000000000000000060 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModelTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000060 = {isa = PBXBuildFile; fileRef = B00000000000000000000060; };
+		B00000000000000000000061 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationFixTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000061 = {isa = PBXBuildFile; fileRef = B00000000000000000000061; };
 		B00000000000000000000025 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Configuration/Signing.xcconfig; sourceTree = "<group>"; };
 		B00000000000000000000023 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowFocusTests.swift; sourceTree = "<group>"; };
 		B00000000000000000000024 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interface/WindowFocusController.swift; sourceTree = "<group>"; };
@@ -24,8 +39,8 @@
 		B00000000000000000000020 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationTests.swift; sourceTree = "<group>"; };
 		B00000000000000000000021 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TraccarClientTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00000000000000000000030 = {isa = PBXBuildFile; fileRef = B00000000000000000000020; };
-		C00000000000000000000010 = {isa = PBXGroup; children = (B00000000000000000000020, B00000000000000000000022, B00000000000000000000023); path = TraccarClientTests; sourceTree = "<group>"; };
-		D00000000000000000000010 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000020, A00000000000000000000021, A00000000000000000000022, A00000000000000000000030, A00000000000000000000031, A00000000000000000000032, A00000000000000000000034); runOnlyForDeploymentPostprocessing = 0; };
+		C00000000000000000000010 = {isa = PBXGroup; children = (B00000000000000000000060, B00000000000000000000061, B00000000000000000000020, B00000000000000000000022, B00000000000000000000023); path = TraccarClientTests; sourceTree = "<group>"; };
+		D00000000000000000000010 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000050, A00000000000000000000051, A00000000000000000000052, A00000000000000000000060, A00000000000000000000061, A00000000000000000000020, A00000000000000000000021, A00000000000000000000022, A00000000000000000000030, A00000000000000000000031, A00000000000000000000032, A00000000000000000000034); runOnlyForDeploymentPostprocessing = 0; };
 		D00000000000000000000011 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		E00000000000000000000010 = {isa = PBXNativeTarget; buildConfigurationList = F00000000000000000000010; buildPhases = (D00000000000000000000010, D00000000000000000000011); buildRules = (); dependencies = (); name = TraccarClientTests; productName = TraccarClientTests; productReference = B00000000000000000000021; productType = "com.apple.product-type.bundle.unit-test"; };
 		F00000000000000000000010 = {isa = XCConfigurationList; buildConfigurations = (F00000000000000000000011, F00000000000000000000012); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
@@ -42,9 +57,9 @@
 		B00000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 		B00000000000000000000005 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Traccar Client macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C00000000000000000000001 = {isa = PBXGroup; children = (B00000000000000000000025, C00000000000000000000010, C00000000000000000000002, C00000000000000000000003); sourceTree = "<group>"; };
-		C00000000000000000000002 = {isa = PBXGroup; children = (B00000000000000000000024, B00000000000000000000010, B00000000000000000000011, B00000000000000000000012, B00000000000000000000001, B00000000000000000000002, B00000000000000000000003, B00000000000000000000004, B00000000000000000000006); path = TraccarClient; sourceTree = "<group>"; };
+		C00000000000000000000002 = {isa = PBXGroup; children = (B00000000000000000000040, B00000000000000000000041, B00000000000000000000042, B00000000000000000000043, B00000000000000000000024, B00000000000000000000010, B00000000000000000000011, B00000000000000000000012, B00000000000000000000001, B00000000000000000000002, B00000000000000000000003, B00000000000000000000004, B00000000000000000000006); path = TraccarClient; sourceTree = "<group>"; };
 		C00000000000000000000003 = {isa = PBXGroup; children = (B00000000000000000000005, B00000000000000000000021); name = Products; sourceTree = "<group>"; };
-		D00000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000010, A00000000000000000000011, A00000000000000000000012, A00000000000000000000001, A00000000000000000000002, A00000000000000000000003, A00000000000000000000033); runOnlyForDeploymentPostprocessing = 0; };
+		D00000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040, A00000000000000000000041, A00000000000000000000042, A00000000000000000000043, A00000000000000000000010, A00000000000000000000011, A00000000000000000000012, A00000000000000000000001, A00000000000000000000002, A00000000000000000000003, A00000000000000000000033); runOnlyForDeploymentPostprocessing = 0; };
 		D00000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		D00000000000000000000003 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000004); runOnlyForDeploymentPostprocessing = 0; };
 		E00000000000000000000001 = {isa = PBXNativeTarget; buildConfigurationList = F00000000000000000000002; buildPhases = (D00000000000000000000001, D00000000000000000000002, D00000000000000000000003); buildRules = (); dependencies = (); name = TraccarClient; productName = "Traccar Client macOS"; productReference = B00000000000000000000005; productType = "com.apple.product-type.application"; };

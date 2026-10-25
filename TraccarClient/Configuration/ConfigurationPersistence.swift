@@ -9,6 +9,7 @@ protocol ConnectionStorage {
 
 @MainActor
 protocol ConfigurationStorage {
+    func loadTrackingPreferences() throws -> TrackingPreferences
     func load(allowInteraction: Bool) throws -> AppConfiguration
     func save(_ configuration: AppConfiguration) throws
 }
@@ -37,7 +38,19 @@ final class PreferencesConfigurationStorage: ConfigurationStorage {
         self.connectionStorage = connectionStorage
     }
 
-    func load(allowInteraction: Bool) throws -> AppConfiguration {
+    static func live() -> PreferencesConfigurationStorage {
+        PreferencesConfigurationStorage(preferences: .standard, connectionStorage: KeychainConnectionStorage(
+            service: "\(Bundle.main.bundleIdentifier ?? "com.codigojose.traccar-client-macos").configuration"
+        ))
+    }
+
+    func loadTrackingPreferences() throws -> TrackingPreferences {
+        let tracking = try readRecord()?.tracking ?? TrackingPreferences()
+        try tracking.validate()
+        return tracking
+    }
+
+    private func readRecord() throws -> Record? {
         let data = preferences.data(forKey: Self.preferencesKey)
         let record: Record?
         if let data {
@@ -52,6 +65,11 @@ final class PreferencesConfigurationStorage: ConfigurationStorage {
         } else {
             record = nil
         }
+        return record
+    }
+
+    func load(allowInteraction: Bool) throws -> AppConfiguration {
+        let record = try readRecord()
         let connection = try connectionStorage.read(allowInteraction: allowInteraction)
         if record != nil && connection == nil { throw ConfigurationError.missingIdentity }
         var configuration = AppConfiguration()

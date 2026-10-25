@@ -81,7 +81,7 @@ jobs:
         run: |
           scripts/build.sh "$RUNNER_TEMP/traccar-ci" Release \
             2>&1 | tee "$RUNNER_TEMP/ci-diagnostics/build-release.log"
-      - name: Test configuration and persistence
+      - name: Run application tests
         run: |
           scripts/test.sh "$RUNNER_TEMP/traccar-ci" \
             2>&1 | tee "$RUNNER_TEMP/ci-diagnostics/tests.log"

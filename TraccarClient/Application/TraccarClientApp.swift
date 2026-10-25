@@ -5,21 +5,39 @@ import SwiftUI
 struct TraccarClientApp: App {
     @NSApplicationDelegateAdaptor(ApplicationDelegate.self) private var delegate
 
-    @State private var configuration = ConfigurationModel.live()
+    @State private var configuration: ConfigurationModel
+    @State private var location: LocationModel
+
+    init() {
+        let storage = PreferencesConfigurationStorage.live()
+        let capture = LocationModel(provider: CoreLocationProvider(), readAccuracy: {
+            try storage.loadTrackingPreferences().accuracy
+        })
+        _location = State(initialValue: capture)
+        _configuration = State(initialValue: ConfigurationModel(storage: storage, beforeConnectionChange: { _, _ in
+            capture.shutdown()
+        }))
+    }
 
     var body: some Scene {
         MenuBarExtra {
-            TrackingMenu()
+            TrackingMenu(location: location)
         } label: {
             Image("MenuBarIcon")
                 .renderingMode(.template)
-                .accessibilityLabel("Traccar Client — Paused")
+                .accessibilityLabel("Traccar Client — \(location.status)")
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
-            SettingsView(model: configuration)
+            SettingsView(model: configuration, location: location)
         }
+
+        Window("Location capture", id: "location-capture") {
+            LocationStatusView(location: location)
+        }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.suppressed)
     }
 }
 

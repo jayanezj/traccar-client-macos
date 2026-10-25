@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var model: ConfigurationModel
+    let location: LocationModel
     @State private var focus = WindowFocusController()
 
     var body: some View {
@@ -122,7 +123,7 @@ struct SettingsView: View {
             TextField("Heartbeat (seconds)", value: $model.draft.tracking.heartbeatSeconds, format: .number)
             Toggle("Buffer positions offline", isOn: $model.draft.tracking.bufferingEnabled)
             Toggle("Detect stationary periods", isOn: $model.draft.tracking.stationaryDetectionEnabled)
-            Text("Preferences are saved for later tracking implementation. Tracking remains paused in this build.")
+            Text("Accuracy applies on capture start. Selection, buffering and stationary detection are not active yet.")
         }
         .disabled(!model.hasLoaded)
     }
@@ -132,13 +133,16 @@ struct SettingsView: View {
             Toggle("Launch at login", isOn: $model.draft.tracking.launchAtLogin).disabled(true)
             Toggle("Restore continuous tracking", isOn: $model.draft.tracking.restoreTracking).disabled(true)
             Text("Login startup and tracking restoration will be available in a later build. Both default to off.")
-            Text("Closing Settings keeps the app in the menu bar. Use Quit to exit.")
+            Text("Closing Settings keeps requested capture running in the menu bar. Use Pause to stop capture.")
         }
     }
 
     private var diagnostics: some View {
         Form {
-            LabeledContent("Status", value: "Paused")
+            LabeledContent("Location capture", value: location.continuousRequested ? "Active" : "Paused")
+            LabeledContent("Condition", value: location.status)
+            LabeledContent("Location permission", value: location.availability.permission.rawValue)
+            LabeledContent("Location Services", value: location.availability.services.rawValue)
             LabeledContent("Configuration", value: model.hasLoaded ? "Loaded locally" : "Unavailable")
             Text("Connection and identity: Keychain. Tracking preferences: UserDefaults.")
             Text("No location permission requests or network activity are started by loading or saving settings.")

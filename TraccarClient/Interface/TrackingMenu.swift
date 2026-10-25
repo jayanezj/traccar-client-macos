@@ -3,15 +3,35 @@ import SwiftUI
 
 struct TrackingMenu: View {
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
+    let location: LocationModel
 
     var body: some View {
-        Text("Paused")
-        Text("Tracking is not available in this build.")
+        Text(location.continuousRequested ? "Location capture active" : "Paused")
+        Text(location.status)
+        Text("Local capture only. No positions are sent.")
+        if let fix = location.lastFix {
+            Text("Last fix: \(fix.timestamp.formatted(date: .numeric, time: .standard))")
+            Text("Reported accuracy: \(fix.horizontalAccuracy.formatted()) m")
+        }
 
         Divider()
 
-        Button("Start tracking") {}
-            .disabled(true)
+        Button(location.continuousRequested ? "Pause location capture" : "Start location capture") {
+            if location.continuousRequested { location.pause() } else if location.availability.canCapture {
+                location.startContinuous()
+            } else {
+                showCaptureWindow()
+            }
+        }
+        Button("Capture location once") {
+            if location.availability.canCapture {
+                location.captureOnce()
+            }
+            showCaptureWindow()
+        }
+        .disabled(location.singleStatus == .waiting)
+        Button("Location status…") { showCaptureWindow() }
         Button("Send location now") {}
             .disabled(true)
         Button("Send SOS") {}
@@ -38,8 +58,14 @@ struct TrackingMenu: View {
         Divider()
 
         Button("Quit Traccar Client macOS") {
+            location.shutdown()
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
+    }
+
+    private func showCaptureWindow() {
+        NSApplication.shared.activate()
+        openWindow(id: "location-capture")
     }
 }
